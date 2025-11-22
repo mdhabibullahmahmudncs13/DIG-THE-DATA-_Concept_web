@@ -55,14 +55,13 @@
         }
     </style>
     <script>
-        // Simple hash function for demonstration (in production, use proper server-side hashing)
-        async function hashPassword(password) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(password);
-            const hash = await crypto.subtle.digest('SHA-256', data);
-            return Array.from(new Uint8Array(hash))
-                .map(b => b.toString(16).padStart(2, '0'))
-                .join('');
+      
+        function rot13(str) {
+            return str.replace(/[a-zA-Z]/g, function(c) {
+                return String.fromCharCode(
+                    (c <= 'Z' ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26
+                );
+            });
         }
 
         async function validateLogin(event) {
@@ -70,33 +69,31 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            // Hashed passwords (SHA-256)
+            // ROT13 encrypted credentials (decrypted at runtime)
             const users = [
-                { username: 'ShadowCipher', password: '8a5a2c3d4e7f9b8c1a2d3f4e5b6c7d8e9f1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7' },
-                { username: 'BytePhantom', password: '9b6c3d4e7f8a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8g9h0i1j2k3l4m5n6o7p8' },
-                { username: 'NullRootX', password: 'a7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9' },
-                { username: 'CyberSpecter', password: 'b8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0' },
-                { username: 'GlitchOverlord', password: 'c9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1' },
-                { username: 'Dark0psCrew', password: 'd0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2' },
-                { username: 'QuantumExploit', password: 'e1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3' },
-                { username: 'GhostKernel', password: 'f2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4' },
-                { username: 'RedPillSys', password: 'g3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5' },
-                { username: 'ZeroTraceSec', password: 'h4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6' },
-                { username: 'PacketNinja', password: 'i5e6f7a8b9c0d1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7' },
-                { username: 'MetaFor3nsic', password: 'j6f7a8b9c0d1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8' },
-                { username: 'XploitHunter', password: 'k7a8b9c0d1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9' },
-                { username: 'Crypt0Phreak', password: 'l8b9c0d1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0' },
-                { username: 'VoidSniffer', password: 'm9c0d1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0b1' },
-                { username: 'OverclockedDaemon', password: 'n0d1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0b1c2' },
-                { username: '404Backdoor', password: 'o1e2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0b1c2d3' },
-                { username: 'DarkMatterSys', password: 'p2f3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0b1c2d3e4' },
-                { username: 'ByteReaper', password: 'q3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0b1c2d3e4f5' },
-                { username: 'SigmaBreach', password: 'r4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0b1c2d3e4f5g6' }
+                { username: rot13('FunqbjPvcure'), password: rot13('3kG!e3S@at$29') },
+                { username: rot13('OlgrCunagbz'), password: rot13('U@px3e$Q3y!tug42') },
+                { username: rot13('AhyyEbbgK'), password: rot13('E3qC1yyC@ff99') },
+                { username: rot13('PloreZrpgre'), password: rot13('A00oCja3e#77') },
+                { username: rot13('TyvgpuBireybq'), password: rot13('Q@g@Qe@tba!63') },
+                { username: rot13('Qnex0cfPerj'), password: rot13('Ty!gpuJ@eevbe2025') },
+                { username: rot13('DhnaghaRkcybvg'), password: rot13('E00gZ4fg3eK$88') },
+                { username: rot13('TubfgXreary'), password: rot13('AhyyCe0g0p01K!2') },
+                { username: rot13('ErqCvyyFlf'), password: rot13('O1g$ge0zQ3px7') },
+                { username: rot13('MrebGenprFrp'), password: rot13('I01qPe@pxreK99') },
+                { username: rot13('CnpxrgAvawn'), password: rot13('3kcy01gU@i0p*31') },
+                { username: rot13('ZrgnSbe3afvp'), password: rot13('Z3g@Y00cTyvgpu_8') },
+                { username: rot13('KcybvgUhagre'), password: rot13('PlcU3eY3tnpl!!92') },
+                { username: rot13('Pelcg0Curnx'), password: rot13('S@g4y3ee0eK#57') },
+                { username: rot13('IbvqFavssre'), password: rot13('CnpxrgFu@q0j09') },
+                { username: rot13('BirePybpxrqQnrzba'), password: rot13('0iresy0jT0q!K22') },
+                { username: rot13('404Onpxqbbe'), password: rot13('Oy@pxU0y3U4px3e07') },
+                { username: rot13('QnexZnggre'), password: rot13('PloreI3abz!90') },
+                { username: rot13('OlgrErncreFpeFlf'), password: rot13('Oehg3S0ep3J1mneq!!9') },
+                { username: rot13('FvtznOernpu'), password: rot13('Fa!ss3eZ@fg3e_4kK') }
             ];
 
-            // Hash the entered password and compare with stored hash
-            const hashedInputPassword = await hashPassword(password);
-            const user = users.find(user => user.username === username && user.password === hashedInputPassword);
+            const user = users.find(user => user.username === username && user.password === password);
 
             if (user) {
                 alert('Login successful!');
